@@ -5,8 +5,8 @@
 
 FROM node:20-alpine AS base
 
-# Install dependencies for better-sqlite3 native bindings
-RUN apk add --no-cache libc6-compat python3 make g++
+# Install dependencies for native bindings and su-exec for safe user switching
+RUN apk add --no-cache libc6-compat python3 make g++ su-exec
 
 WORKDIR /app
 
@@ -27,62 +27,30 @@ ENV NODE_ENV=production
 RUN npm run build
 
 # ─── RUNNER STAGE ───
-#FROM base AS runner
-#WORKDIR /app
-
-#ENV NODE_ENV=production
-#ENV NEXT_TELEMETRY_DISABLED=1
-#ENV PORT=3040
-
-# Create non-root user
-#RUN addgroup --system --gid 1001 nodejs
-#RUN adduser --system --uid 1001 nextjs
-
-# Create data directory for SQLite persistence
-#RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
-
-# Copy built app from builder
-#COPY --from=builder /app/public ./public
-#COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-#COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Copy the custom server (needed for port binding)
-#COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
-
-# Copy better-sqlite3 binary
-#COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
-
-#USER nextjs
-
-#EXPOSE 3040
-
-# Health check
-#HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-#  CMD wget -qO- http://localhost:3040/api/register || exit 1
-
-#CMD ["node", "server.js"]
-
-# ─── RUNNER STAGE ───
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# This forces the internal server to use your specific port
 ENV PORT=3040 
 ENV HOSTNAME="0.0.0.0"
 
+# Set up the production user and data directory
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+RUN mkdir -p /app/data
 
-# Copy the standalone build output
+# Copy standalone build assets
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY entrypoint.sh ./entrypoint.sh
 
-USER nextjs
+# Ensure the script is executable
+RUN chmod +x ./entrypoint.sh
+
 EXPOSE 3040
 
-# We use the build-generated server.js which is guaranteed to find its modules
-CMD ["node", "server.js"]
+# We start as root to allow entrypoint.sh to fix volume permissions.
+# The script will then switch to the 'nextjs' user automatically.
+ENTRYPOINT ["./entrypoint.sh"]
