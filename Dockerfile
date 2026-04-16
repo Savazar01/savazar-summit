@@ -1,9 +1,9 @@
 # ============================================
 # Savazar GVSS Summit — Dockerfile
-# Base: node:18-alpine | Port: 3040
+# Base: node:20-alpine | Port: 3040
 # ============================================
 
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Install dependencies for better-sqlite3 native bindings
 RUN apk add --no-cache libc6-compat python3 make g++
