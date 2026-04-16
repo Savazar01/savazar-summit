@@ -27,6 +27,42 @@ ENV NODE_ENV=production
 RUN npm run build
 
 # ─── RUNNER STAGE ───
+#FROM base AS runner
+#WORKDIR /app
+
+#ENV NODE_ENV=production
+#ENV NEXT_TELEMETRY_DISABLED=1
+#ENV PORT=3040
+
+# Create non-root user
+#RUN addgroup --system --gid 1001 nodejs
+#RUN adduser --system --uid 1001 nextjs
+
+# Create data directory for SQLite persistence
+#RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+
+# Copy built app from builder
+#COPY --from=builder /app/public ./public
+#COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+#COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy the custom server (needed for port binding)
+#COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
+
+# Copy better-sqlite3 binary
+#COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+
+#USER nextjs
+
+#EXPOSE 3040
+
+# Health check
+#HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+#  CMD wget -qO- http://localhost:3040/api/register || exit 1
+
+#CMD ["node", "server.js"]
+
+# ─── RUNNER STAGE ───
 FROM base AS runner
 WORKDIR /app
 
@@ -34,30 +70,22 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3040
 
-# Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Create data directory for SQLite persistence
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 
-# Copy built app from builder
-COPY --from=builder /app/public ./public
+# 1. Copy standalone build
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+# 2. Copy static assets
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Copy the custom server (needed for port binding)
+# 3. Copy public folder
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# 4. Copy custom server.js
 COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
 
-# Copy better-sqlite3 binary
-COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
-
 USER nextjs
-
 EXPOSE 3040
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:3040/api/register || exit 1
 
 CMD ["node", "server.js"]
