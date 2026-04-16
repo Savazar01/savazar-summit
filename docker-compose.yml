@@ -14,12 +14,12 @@ services:
       # Persist SQLite database across container restarts
       - ./data:/app/data
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3040"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
+#    healthcheck:
+#      test: ["CMD", "wget", "-qO-", "http://localhost:3040"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 15s
 
 # Named volume fallback (if local ./data doesn't exist)
 volumes:
