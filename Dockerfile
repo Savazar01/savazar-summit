@@ -72,20 +72,24 @@ ENV PORT=3040
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-
-# Create data directory for SQLite persistence
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 
-# 1. Copy standalone build
+# 1. Copy Standalone files (these contain the internal 'next' server)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-# 2. Copy static assets
+
+# 2. Crucial: Copy the standalone node_modules to the root so server.js finds them
+# This fixes the "MODULE_NOT_FOUND" error on the VPS
+RUN cp -rn ./node_modules_original/* ./node_modules/ || true 
+
+# 3. Copy static and public assets as usual
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-# 3. Copy public folder
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-# 4. Copy custom server.js
+
+# 4. Copy your custom server.js (maintains local/VPS parity)
 COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
 
 USER nextjs
 EXPOSE 3040
 
+# Run your custom server just like you do on Windows
 CMD ["node", "server.js"]
