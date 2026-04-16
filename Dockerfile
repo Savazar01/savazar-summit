@@ -68,28 +68,21 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3040
+# This forces the internal server to use your specific port
+ENV PORT=3040 
+ENV HOSTNAME="0.0.0.0"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 
-# 1. Copy Standalone files (these contain the internal 'next' server)
+# Copy the standalone build output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-
-# 2. Crucial: Copy the standalone node_modules to the root so server.js finds them
-# This fixes the "MODULE_NOT_FOUND" error on the VPS
-RUN cp -rn ./node_modules_original/* ./node_modules/ || true 
-
-# 3. Copy static and public assets as usual
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-
-# 4. Copy your custom server.js (maintains local/VPS parity)
-COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
 
 USER nextjs
 EXPOSE 3040
 
-# Run your custom server just like you do on Windows
+# We use the build-generated server.js which is guaranteed to find its modules
 CMD ["node", "server.js"]
