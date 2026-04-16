@@ -1,0 +1,456 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { 
+  Download, 
+  LogOut, 
+  RefreshCw, 
+  Search, 
+  Users2, 
+  Lock, 
+  Globe, 
+  Briefcase, 
+  Cpu, 
+  Bot,
+  Filter,
+  Eye,
+  X
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const EXP_LABELS: Record<number, string> = {
+  1: "Curious/Beginner",
+  2: "Exploration Mode",
+  3: "Practical Builder",
+  4: "Advanced Integrator",
+  5: "Elite Architect",
+};
+
+interface Lead {
+  id: number;
+  full_name: string;
+  email: string;
+  whatsapp: string;
+  city: string;
+  country: string;
+  company_name: string;
+  role: string;
+  years_experience: string;
+  ai_experience: number;
+  industries: string;
+  tech_skills: string;
+  ai_skills: string;
+  interests: string;
+  coupon_code: string;
+  additional_details: string;
+  request_type: string;
+  referrer_name: string;
+  referrer_email: string;
+  proposed_time: string;
+  company_size: string;
+  turnover: string;
+  company_location: string;
+  requirement_description: string;
+  consulting_industry: string;
+  created_at: string;
+}
+
+const EXP_DOTS = (n: number) =>
+  Array.from({ length: 5 }, (_, i) => (
+    <div
+      key={i}
+      className={`w-2 h-2 rounded-full mx-0.5 shadow-sm ${i < n ? "bg-purple-light shadow-purple-light/20" : "bg-white/5"}`}
+    />
+  ));
+
+export default function AdminPage() {
+  const [password, setPassword] = useState("");
+  const [authed, setAuthed] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [storedPassword, setStoredPassword] = useState("");
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setAuthError("");
+    try {
+      const res = await fetch("/api/admin/leads", {
+        headers: { "x-admin-password": password },
+      });
+      if (!res.ok) {
+        setAuthError("Auth Failed: Incorrect encrypted access key.");
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      setLeads(data.leads || []);
+      setStoredPassword(password);
+      setAuthed(true);
+    } catch {
+      setAuthError("Server unavailable. Link failed.");
+    }
+    setLoading(false);
+  }
+
+  async function loadLeads() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/leads", {
+        headers: { "x-admin-password": storedPassword },
+      });
+      const data = await res.json();
+      setLeads(data.leads || []);
+    } catch {}
+    setLoading(false);
+  }
+
+  function handleExport() {
+    fetch("/api/admin/export", {
+      headers: { "x-admin-password": storedPassword },
+    })
+      .then((r) => r.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `savazar-leads-${new Date().toISOString().split("T")[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+  }
+
+  const filtered = leads.filter((l) => {
+    const matchesSearch = 
+      l.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      l.whatsapp.includes(search) ||
+      l.role.toLowerCase().includes(search.toLowerCase()) ||
+      l.interests.toLowerCase().includes(search.toLowerCase()) ||
+      (l.city || "").toLowerCase().includes(search.toLowerCase());
+    
+    if (filter === "all") return matchesSearch;
+    if (filter === "consulting") return matchesSearch && l.request_type === "consulting";
+    if (filter === "certification") return matchesSearch && l.request_type === "workshop";
+    if (filter === "gvss") return matchesSearch && l.coupon_code === "GVSS";
+    
+    return matchesSearch;
+  });
+
+  // Calculate Stats
+  const stats = {
+    total: leads.length,
+    consulting: leads.filter(l => l.request_type === "consulting").length,
+    workshop: leads.filter(l => l.request_type === "workshop").length,
+    gvss: leads.filter(l => l.coupon_code === "GVSS").length,
+  };
+
+  if (!authed) {
+    return (
+      <div className="min-h-screen hero-bg flex items-center justify-center p-4">
+        <div className="glass-modal w-full max-w-sm p-10 border-purple-savazar/40">
+          <div className="flex items-center justify-center mb-8">
+            <div className="w-16 h-16 rounded-3xl bg-purple-savazar/10 flex items-center justify-center border border-purple-savazar/40 shadow-inner">
+              <Lock size={28} className="text-purple-light" />
+            </div>
+          </div>
+          <h1 className="font-headline text-3xl font-bold text-center mb-2 tracking-tight">Access Gate</h1>
+          <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-center mb-10 text-gray-500">
+            Savazar Summit Admin Portal
+          </p>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="form-label text-[10px]">AUTH_TOKEN</label>
+              <input
+                type="password"
+                className="form-input h-12 bg-black/40 border-white/10 focus:border-purple-savazar/60 transition-all text-center tracking-widest"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {authError && (
+              <p className="text-[10px] text-red-500 font-bold bg-red-500/5 p-3 rounded-lg border border-red-500/20 text-center uppercase tracking-tighter animate-pulse">
+                {authError}
+              </p>
+            )}
+            <button type="submit" className="btn-primary w-full h-12 justify-center font-bold uppercase tracking-widest text-xs" disabled={loading}>
+              {loading ? "Decrypting…" : "Initialize Auth →"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#05050a] text-gray-200">
+      <div className="grid-pattern opacity-30 pointer-events-none fixed inset-0" />
+      
+      {/* Header */}
+      <header className="sticky top-0 z-40 glass border-b border-white/5 px-8 py-5 flex items-center justify-between backdrop-blur-2xl">
+        <div className="flex items-center gap-6">
+          <div className="h-10 w-1 bg-gradient-to-bottom from-purple-savazar to-purple-light rounded-full" />
+          <div>
+            <h1 className="font-headline text-2xl font-black italic tracking-tighter">LEAD_INTELLIGENCE</h1>
+            <p className="text-[9px] uppercase tracking-[0.4em] font-bold text-gray-500">GVSS Summit · Command Center</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-4">
+          <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
+            {["all", "workshop", "consulting", "gvss"].map(f => (
+              <button 
+                key={f} onClick={() => setFilter(f === "workshop" ? "certification" : f)}
+                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${((filter === "certification" && f === "workshop") || filter === f) ? "bg-purple-savazar text-white shadow-lg" : "text-gray-500 hover:text-gray-300"}`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+          <button onClick={loadLeads} className="p-2.5 rounded-xl glass hover:bg-white/5 text-gray-400">
+            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+          </button>
+          <button onClick={handleExport} className="btn-primary flex items-center gap-2 px-6 h-11 text-[10px] font-bold uppercase tracking-widest">
+            <Download size={14} /> Export CSV
+          </button>
+          <button onClick={() => { setAuthed(false); setLeads([]); }} className="p-2.5 rounded-xl glass bg-red-500/5 text-red-500/60 hover:text-red-500 transition-colors">
+            <LogOut size={18} />
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-[1600px] mx-auto px-8 py-10">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+          {[
+            { label: "Pipeline Total", value: stats.total, color: "text-white" },
+            { label: "Workshop", value: stats.workshop, color: "text-yellow-savazar" },
+            { label: "GVSS Discount Applied", value: stats.gvss, color: "text-purple-light" },
+            { label: "B2B Consulting", value: stats.consulting, color: "text-blue-400" },
+          ].map((s, i) => (
+            <div key={i} className="glass-card p-6 border-white/5 flex flex-col justify-between group hover:border-white/20 transition-all">
+              <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-500 mb-4">{s.label}</p>
+              <p className={`font-headline text-4xl font-black ${s.color}`}>{s.value}</p>
+              <div className="h-0.5 w-0 group-hover:w-full bg-purple-savazar transition-all duration-500 mt-4" />
+            </div>
+          ))}
+        </div>
+
+        {/* List Section */}
+        <div className="glass-card border-white/5 overflow-hidden">
+          <div className="p-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between gap-6">
+            <div className="relative flex-grow">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input 
+                type="text" className="form-input pl-12 h-12 bg-black/40 border-white/5 focus:border-purple-savazar/40"
+                placeholder="Search names, phone, city, or interests…" 
+                value={search} onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+              Showing {filtered.length} Leads
+            </p>
+          </div>
+
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-white/[0.01] text-[10px] uppercase tracking-[0.2em] font-black text-gray-500 border-b border-white/5">
+                <th className="px-6 py-5">Type</th>
+                <th className="px-6 py-5">Name</th>
+                <th className="px-6 py-5">Email</th>
+                <th className="px-6 py-5">WhatsApp</th>
+                <th className="px-6 py-5">Price</th>
+                <th className="px-6 py-5">Discount</th>
+                <th className="px-6 py-5">Geography</th>
+                <th className="px-6 py-5">Background</th>
+                <th className="px-6 py-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {filtered.map(l => {
+                const basePrice = l.request_type === "consulting" ? 5000 : 50000;
+                const hasDiscount = l.coupon_code === "GVSS" || l.coupon_code === "SIPL";
+                const discount = hasDiscount ? basePrice * 0.1 : 0;
+                
+                return (
+                  <tr key={l.id} className="hover:bg-white/[0.02] transition-all group">
+                    <td className="px-6 py-6">
+                      <span className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-tighter border ${l.request_type === "consulting" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-purple-500/10 text-purple-light border-purple-500/20"}`}>
+                        {l.request_type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-6">
+                      <p className="font-bold text-sm text-white">{l.full_name}</p>
+                    </td>
+                    <td className="px-6 py-6">
+                      <p className="text-[10px] text-purple-savazar font-bold">{l.email}</p>
+                    </td>
+                    <td className="px-6 py-6">
+                      <p className="text-xs text-gray-500 font-medium">{l.whatsapp}</p>
+                    </td>
+                    <td className="px-6 py-6 font-headline font-bold text-white">
+                      ₹{basePrice.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-6 font-headline font-bold text-yellow-savazar">
+                      {discount > 0 ? `-₹${discount.toLocaleString()}` : "—"}
+                    </td>
+                    <td className="px-6 py-6 text-xs text-gray-400">
+                      {l.city}, {l.country}
+                    </td>
+                    <td className="px-6 py-6">
+                      <p className="text-xs font-bold text-gray-300">{l.role}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">{l.years_experience} Exp</p>
+                    </td>
+                    <td className="px-6 py-6 text-right">
+                      <button 
+                        onClick={() => setSelectedLead(l)}
+                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all text-gray-400"
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {filtered.length === 0 && <p className="py-20 text-center text-xs text-gray-600 font-bold uppercase tracking-[0.3em]">No Intelligence Logs Found</p>}
+        </div>
+      </main>
+
+      {/* Lead Detail Modal */}
+      <AnimatePresence>
+        {selectedLead && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl" onClick={() => setSelectedLead(null)}>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="glass-modal w-full max-w-2xl overflow-hidden border-white/10"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                <div>
+                  <h2 className="text-2xl font-bold font-headline">{selectedLead.full_name}</h2>
+                  <p className="text-xs text-purple-light font-bold uppercase tracking-widest mt-1">{selectedLead.role} · {selectedLead.request_type}</p>
+                </div>
+                <button onClick={() => setSelectedLead(null)} className="p-2 text-gray-500 hover:text-white transition-colors"><X size={24} /></button>
+              </div>
+              <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-10 overflow-y-auto max-h-[70vh]">
+                {selectedLead.request_type === "consulting" ? (
+                  <>
+                    <div className="space-y-8">
+                      <Section label="Consultation Requester" icon={<Globe size={14} />}>
+                        <p><span className="text-gray-600">Name:</span> {selectedLead.full_name}</p>
+                        <p><span className="text-gray-600">Email:</span> {selectedLead.email}</p>
+                        <p><span className="text-gray-600">WhatsApp:</span> {selectedLead.whatsapp}</p>
+                        <p><span className="text-gray-600">Location:</span> {selectedLead.city}, {selectedLead.country}</p>
+                      </Section>
+                      
+                      <Section label="Business Profile" icon={<Briefcase size={14} />}>
+                        <p><span className="text-gray-600">Company:</span> {selectedLead.company_name}</p>
+                        <p><span className="text-gray-600">Industry:</span> {selectedLead.consulting_industry}</p>
+                        <p><span className="text-gray-600">Size:</span> {selectedLead.company_size}</p>
+                        <p><span className="text-gray-600">Turnover:</span> {selectedLead.turnover}</p>
+                        <p><span className="text-gray-600">Location:</span> {selectedLead.company_location}</p>
+                      </Section>
+
+                      <Section label="Referral Attribution" icon={<Users2 size={14} />}>
+                        <p><span className="text-gray-600">Referrer:</span> {selectedLead.referrer_name || "Direct"}</p>
+                        {selectedLead.referrer_email && <p><span className="text-gray-600">Ref Email:</span> {selectedLead.referrer_email}</p>}
+                      </Section>
+                    </div>
+
+                    <div className="space-y-8">
+                      <Section label="Project Scope" icon={<Cpu size={14} />}>
+                        <p className="text-[10px] text-gray-500 uppercase font-black mb-2">Focus Areas:</p>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {(selectedLead.interests || "").split(", ").map(area => (
+                            <span key={area} className="px-2 py-1 rounded-md bg-purple-savazar/10 border border-purple-savazar/20 text-purple-light text-[10px] font-bold">
+                              {area}
+                            </span>
+                          ))}
+                        </div>
+                        <p><span className="text-gray-600">Proposed Start:</span> <span className="text-yellow-savazar font-bold">{selectedLead.proposed_time}</span></p>
+                      </Section>
+
+                      <Section label="Core Requirement" icon={<Bot size={14} />}>
+                        <div className="text-xs leading-relaxed text-gray-300 bg-white/[0.03] p-5 rounded-2xl border border-white/5 whitespace-pre-wrap italic">
+                          "{selectedLead.requirement_description || "No specific details provided."}"
+                        </div>
+                      </Section>
+
+                      {selectedLead.coupon_code && (
+                        <Section label="Offers">
+                          <p className="text-[10px] font-bold text-yellow-savazar">Active Promo: {selectedLead.coupon_code}</p>
+                        </Section>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-6">
+                      <Section label="Contact Matrix" icon={<Globe size={14} />}>
+                        <p><span className="text-gray-600">Email:</span> {selectedLead.email}</p>
+                        <p><span className="text-gray-600">WhatsApp:</span> {selectedLead.whatsapp}</p>
+                        <p><span className="text-gray-600">Location:</span> {selectedLead.city}, {selectedLead.country}</p>
+                      </Section>
+                      <Section label="Referral Attribution" icon={<Users2 size={14} />}>
+                        <p><span className="text-gray-600">Referrer:</span> {selectedLead.referrer_name || "Direct / No Referrer"}</p>
+                        {selectedLead.referrer_email && <p><span className="text-gray-600">Ref Email:</span> {selectedLead.referrer_email}</p>}
+                      </Section>
+                      <Section label="Professional Context" icon={<Briefcase size={14} />}>
+                        <p><span className="text-gray-600">Company:</span> {selectedLead.company_name || "N/A"}</p>
+                        <p><span className="text-gray-600">Experience:</span> {selectedLead.years_experience}</p>
+                        <p><span className="text-gray-600">Industries:</span> {selectedLead.industries || "None"}</p>
+                      </Section>
+                    </div>
+                    <div className="space-y-6">
+                      <Section label="Technical Arsenal" icon={<Cpu size={14} />}>
+                        <p className="text-xs text-gray-400 capitalize">{selectedLead.tech_skills || "No specific tech skills listed."}</p>
+                      </Section>
+                      <Section label="AI Intelligence" icon={<Bot size={14} />}>
+                        <div className="flex mb-2">{EXP_DOTS(selectedLead.ai_experience)}</div>
+                        <p className="text-[10px] text-gray-500 mb-3 uppercase tracking-tighter">Lvl {selectedLead.ai_experience} - {EXP_LABELS[selectedLead.ai_experience]}</p>
+                        <p className="text-xs text-purple-light font-bold border-l-2 border-purple-savazar/40 pl-3 py-1">{selectedLead.ai_skills || "Baseline AI awareness only."}</p>
+                      </Section>
+                      <Section label="Interests & Codes">
+                        <p className="text-xs leading-relaxed text-gray-400">{selectedLead.interests}</p>
+                        {selectedLead.coupon_code && <p className="mt-3 text-[10px] font-bold text-yellow-savazar">Active Promo: {selectedLead.coupon_code}</p>}
+                      </Section>
+                    </div>
+                    <div className="col-span-1 sm:col-span-2 border-t border-white/5 pt-8">
+                      <Section label="Additional Transmission Details">
+                        <p className="text-xs leading-relaxed text-gray-400 bg-black/20 p-4 rounded-xl border border-white/5 italic">
+                          "{selectedLead.additional_details || "No additional intelligence provided in this transmission."}"
+                        </p>
+                      </Section>
+                    </div>
+                  </>
+                )}
+                <div className="col-span-1 sm:col-span-2 mt-4">
+                  <p className="text-[10px] text-gray-600 uppercase tracking-[0.2em] font-bold">Log Generated: {new Date(selectedLead.created_at).toLocaleString()}</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function Section({ label, children, icon }: { label: string, children: React.ReactNode, icon?: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-[10px] uppercase font-black tracking-[0.3em] text-gray-600 mb-4 flex items-center gap-2">
+        {icon} {label}
+      </h3>
+      <div className="text-xs space-y-2.5">{children}</div>
+    </div>
+  );
+}

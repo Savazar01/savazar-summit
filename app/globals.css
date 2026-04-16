@@ -1,26 +1,489 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
+/* ============================================
+   SAVAZAR GVSS SUMMIT — DESIGN SYSTEM
+   ============================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navy: #1a1a2e;
+  --navy-light: #16213e;
+  --navy-dark: #0f0f1a;
+  --purple: #6667ab;
+  --purple-light: #8889c8;
+  --purple-glow: rgba(102, 103, 171, 0.4);
+  --yellow-cta: #fccb0b;
+  --yellow-glow: rgba(252, 203, 11, 0.3);
+  --gold-soft: #fee499;
+  --text-primary: #f0f0ff;
+  --text-secondary: #a0a0c0;
+  --glass-bg: rgba(22, 33, 62, 0.6);
+  --glass-border: rgba(102, 103, 171, 0.25);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ============================================
+   GLOBAL RESET & BASE
+   ============================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background-color: var(--navy);
+  color: var(--text-primary);
+  font-family: "Inter", sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+.font-headline {
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.text-gradient-purple {
+  background: linear-gradient(135deg, #8889c8 0%, #6667ab 50%, #fee499 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #fccb0b 0%, #fee499 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   GLASSMORPHISM
+   ============================================ */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card {
+  background: rgba(22, 33, 62, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(102, 103, 171, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-modal {
+  background: rgba(15, 15, 26, 0.92);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(102, 103, 171, 0.4);
+  border-radius: 20px;
+  box-shadow: 0 0 60px rgba(102, 103, 171, 0.3), 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* ============================================
+   GLOW EFFECTS
+   ============================================ */
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(102, 103, 171, 0.6), 0 0 60px rgba(102, 103, 171, 0.2);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 20px rgba(252, 203, 11, 0.6), 0 0 60px rgba(252, 203, 11, 0.2);
+}
+
+.glow-border-purple {
+  border: 1px solid rgba(102, 103, 171, 0.6);
+  box-shadow: 0 0 12px rgba(102, 103, 171, 0.3), inset 0 0 12px rgba(102, 103, 171, 0.05);
+}
+
+.glow-border-yellow {
+  border: 1px solid rgba(252, 203, 11, 0.6);
+  box-shadow: 0 0 12px rgba(252, 203, 11, 0.3), inset 0 0 12px rgba(252, 203, 11, 0.05);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #fccb0b 0%, #fee499 100%);
+  color: #0f0f1a;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(252, 203, 11, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(252, 203, 11, 0.6), 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: transparent;
+  color: var(--purple-light);
+  font-family: "Orbitron", sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(102, 103, 171, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(102, 103, 171, 0.15);
+  border-color: rgba(102, 103, 171, 0.8);
+  box-shadow: 0 0 20px rgba(102, 103, 171, 0.3);
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(15, 15, 26, 0.8);
+  border: 1px solid rgba(102, 103, 171, 0.3);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: "Inter", sans-serif;
+  font-size: 0.925rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(102, 103, 171, 0.15);
+}
+
+.form-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+select.form-input option {
+  background: var(--navy-dark);
+}
+
+/* ============================================
+   SECTION DIVIDER
+   ============================================ */
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(102, 103, 171, 0.4), transparent);
+  margin: 4rem 0;
+}
+
+/* ============================================
+   ANIMATED BACKGROUND
+   ============================================ */
+
+.hero-bg {
+  background: radial-gradient(ellipse at 50% 0%, rgba(102, 103, 171, 0.25) 0%, rgba(26, 26, 46, 0) 70%),
+    radial-gradient(ellipse at 80% 80%, rgba(252, 203, 11, 0.08) 0%, transparent 50%),
+    var(--navy);
+}
+
+.grid-pattern {
+  background-image: 
+    linear-gradient(rgba(102, 103, 171, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(102, 103, 171, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ============================================
+   SCROLL ANIMATIONS
+   ============================================ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   BADGE
+   ============================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: rgba(102, 103, 171, 0.2);
+  border: 1px solid rgba(102, 103, 171, 0.4);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--purple-light);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badge-yellow {
+  background: rgba(252, 203, 11, 0.15);
+  border-color: rgba(252, 203, 11, 0.4);
+  color: var(--yellow-cta);
+}
+
+/* ============================================
+   LOGISTICS BOX
+   ============================================ */
+
+.logistics-box {
+  background: linear-gradient(135deg, rgba(102, 103, 171, 0.15) 0%, rgba(26, 26, 46, 0.8) 100%);
+  border: 1px solid rgba(102, 103, 171, 0.35);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.logistics-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #6667ab, #fccb0b, #6667ab);
+}
+
+/* ============================================
+   COUPON CODE
+   ============================================ */
+
+.coupon-code {
+  display: inline-block;
+  padding: 6px 16px;
+  background: rgba(252, 203, 11, 0.1);
+  border: 1px dashed rgba(252, 203, 11, 0.6);
+  border-radius: 6px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--yellow-cta);
+  letter-spacing: 0.1em;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--navy-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--purple);
+  border-radius: 3px;
+}
+
+/* ============================================
+   PRINT STYLES — FLYER OPTIMIZATION
+   ============================================ */
+
+@media print {
+  /* 1. Global Print Resets */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #1a1a2e !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* 2. Hide Web-Only Elements */
+  .no-print,
+  .btn-primary,
+  .btn-secondary,
+  .glow-purple,
+  .glow-yellow,
+  button,
+  .glass-modal {
+    display: none !important;
+  }
+
+  .hero-bg, .grid-pattern {
+    background: #ffffff !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+  }
+
+  /* 3. Brochure Header & Branding */
+  header, nav.print-nav {
+    display: flex !important;
+    position: relative !important;
+    justify-content: center !important;
+    padding: 10mm 0 !important;
+    border-bottom: 2pt solid #1a1a2e !important;
+    margin-bottom: 5mm !important;
+  }
+
+  img[alt*="Savazar"] {
+    filter: none !important; /* Restore natural colors on white bg */
+    width: 60mm !important;
+    height: auto !important;
+  }
+
+  /* 4. Professional Brochure Sections */
+  main, section, article {
+    display: block !important;
+    position: relative !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    padding: 5mm 0 !important;
+    margin-bottom: 5mm !important;
+    border: none !important;
+    background: transparent !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
+  }
+
+  .glass-card, 
+  .glass, 
+  .logistics-box {
+    background: #f8f9ff !important;
+    border: 1pt solid #d1d5db !important;
+    padding: 5mm !important;
+    margin: 5mm 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    border-radius: 0 !important; /* Professional flyer look */
+    color: #1a1a2e !important;
+  }
+
+  .logistics-box {
+    border: 2pt solid #6667AB !important;
+    background: #fdfdff !important;
+  }
+
+  /* 5. Typography Engine */
+  h1, h2, h3, h4 {
+    color: #1a1a2e !important;
+    font-weight: bold !important;
+    margin-bottom: 15pt !important;
+  }
+
+  h1 { font-size: 28pt !important; text-align: center !important; }
+  h2 { font-size: 20pt !important; border-bottom: 1pt solid #6667AB !important; display: inline-block !important; margin-top: 10pt !important; }
+  h3 { font-size: 16pt !important; color: #6667AB !important; }
+  
+  p, span, li {
+    color: #333333 !important;
+    opacity: 1 !important;
+  }
+
+  .text-gradient-purple, 
+  .text-gradient-gold {
+    background: none !important;
+    -webkit-text-fill-color: initial !important;
+    color: #1a1a2e !important;
+    font-weight: 800 !important;
+  }
+
+  /* 6. Layout Fixes (Linear Flow) */
+  .grid {
+    display: block !important;
+  }
+
+  .grid > div {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 5mm !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Specific Course Page Fixes */
+  .badge, .badge-yellow {
+    display: inline-block !important;
+    background: #1a1a2e !important;
+    color: #ffffff !important;
+    padding: 2pt 8pt !important;
+    font-size: 9pt !important;
+    text-transform: uppercase !important;
+    border-radius: 2pt !important;
+  }
+
+  /* 7. Page Spacing Control */
+  @page {
+    margin: 15mm;
+    size: A4 portrait;
+  }
+
+  footer.print-footer {
+    display: block !important;
+    border-top: 1pt solid #eee !important;
+    padding-top: 10mm !important;
+    text-align: center !important;
+    font-size: 9pt !important;
+    color: #999 !important;
+  }
 }

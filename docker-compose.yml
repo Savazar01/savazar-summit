@@ -1,0 +1,26 @@
+services:
+  savazar-summit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: savazar-summit
+    ports:
+      - "3040:3040"
+    environment:
+      - NODE_ENV=production
+      - PORT=3040
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-savazar2025}
+    volumes:
+      # Persist SQLite database across container restarts
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3040"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+# Named volume fallback (if local ./data doesn't exist)
+volumes:
+  summit_data:
